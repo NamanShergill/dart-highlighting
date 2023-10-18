@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:highlighting/highlighting.dart';
+
+export 'package:highlighting/languages/all.dart';
 
 /// Highlight Flutter Widget
 class HighlightView extends StatelessWidget {
@@ -27,13 +28,18 @@ class HighlightView extends StatelessWidget {
   /// Specify text styles such as font family and font size
   final TextStyle? textStyle;
 
+  final Color? backgroundColor;
+  final bool selectable;
   HighlightView(
     String input, {
     this.languageId,
     this.theme = const {},
     this.padding,
     this.textStyle,
-    int tabSize = 8, // TODO: https://github.com/flutter/flutter/issues/50087
+    int tabSize = 8,
+    this.backgroundColor,
+    this.selectable =
+        false, // TODO: https://github.com/flutter/flutter/issues/50087
   }) : source = input.replaceAll('\t', ' ' * tabSize);
 
   List<TextSpan> _convert(List<Node> nodes) {
@@ -87,17 +93,23 @@ class HighlightView extends StatelessWidget {
       _textStyle = _textStyle.merge(textStyle);
     }
 
-    return Container(
-      color: theme[_rootKey]?.backgroundColor ?? _defaultBackgroundColor,
-      padding: padding,
-      child: RichText(
-        text: TextSpan(
-          style: _textStyle,
-          children: _convert(
-            highlight.highlight(languageId ?? '', source, true).nodes ?? [],
-          ),
-        ),
+    final textSpan = TextSpan(
+      style: _textStyle,
+      children: _convert(
+        highlight.highlight(languageId ?? '', source, true).nodes ?? [],
       ),
+    );
+    return Container(
+      color: backgroundColor ??
+          theme[_rootKey]?.backgroundColor ??
+          _defaultBackgroundColor,
+      padding: padding,
+      child: selectable
+          ? SelectableText.rich(textSpan)
+          : Text.rich(
+              textSpan,
+              // showCursor: true,
+            ),
     );
   }
 }
